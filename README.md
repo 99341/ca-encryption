@@ -9,11 +9,11 @@ Zrobione:
 
 •bramka logiczna XOR
 
+•odszyfrowanie wiadomości
+
 
 Do zrobienia:
 
-•Może większe boxy na tekst?
+•Generowanie klucza za pomocą automatów komórkowych
 
-•Generowanie klucza za pomocą automatów komórkowych (aktualnie generowane jest funkcją random xDDDDDDDD)
 
-•Schowanie konsoli przy uruchamianiu

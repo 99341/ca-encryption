@@ -9,6 +9,7 @@ class Secret_key(QMainWindow):
         self.ui.setupUi(self)
         self.ui.generate_key.clicked.connect(self.generate_clicked)
         self.ui.encrypt_key.clicked.connect(self.encrypt_clicked) #podlacza przycisk do funckji
+        self.ui.decrypt_key.clicked.connect(self.decrypt_clicked)
 
     def id_generator(self, size=6, chars=string.digits + string.ascii_letters):
         return str(''.join(random.choice(chars) for _ in range(size))) #generuje klucz, tu musza byc automaty
@@ -54,3 +55,13 @@ class Secret_key(QMainWindow):
             self.ui.key_binary.setText(binary_key_string)
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(),self.ui.key_binary.text()))
 
+    @pyqtSlot()
+    def decrypt_clicked(self):
+        if len(self.ui.text_binary_encrypted.text())>0 and len(self.ui.key_binary_encrypted.text())>0:
+            tmp = self.xor(self.ui.text_binary_encrypted.text(),self.ui.key_binary_encrypted.text())
+            i=0
+            lista = []
+            while(i+8<=len(tmp)):
+                lista.append(tmp[i:i+8])
+                i+=8
+            self.ui.decrypted_message.setText(self.bits2string(lista))
