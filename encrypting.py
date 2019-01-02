@@ -57,6 +57,7 @@ class Secret_key(QMainWindow):
             for bits_key in binary_text:
                 binary_text_string += bits_key
 
+            self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
             self.ui.text_binary.setText(binary_text_string)
             self.ui.key_binary.setText(self.concatenate_list_data(self.return_haslo_8bit()))
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(),self.ui.key_binary.text()))

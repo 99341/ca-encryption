@@ -11,9 +11,8 @@ Zrobione:
 
 •odszyfrowanie wiadomości
 
+•Generowanie klucza za pomocą automatów komórkowych
 
 Do zrobienia:
 
-•Generowanie klucza za pomocą automatów komórkowych
-
-
+•zapisywanie do pliku
