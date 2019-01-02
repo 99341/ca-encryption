@@ -8,3 +8,4 @@ window = ec.Secret_key()
 window.setWindowTitle('Secret key encrypting')
 window.show()
 sys.exit(app.exec_())
+

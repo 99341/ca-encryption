@@ -47,12 +47,7 @@ class CellularAutomaton:
         self.generations_list.append(self.current_generation)
         self.current_generation = new_gen
 
+#cellular = CellularAutomaton(['0', '0', '0', '0', '1', '0', '0', '0'], 53)#, non_uniform_rules=[53, 110, 34, 21, 3,43,9,2,3])
+#print("Rules: " + str(cellular.rules_list))
 
-# egzampl kod
-cellular = CellularAutomaton(['1', '0', '1', '1', '1'], non_uniform_rules=[53, 110, 34, 21, 3])
-print("Rules: " + str(cellular.rules_list))
-print(cellular.current_generation)
-for i in range(10):
-    cellular.iterate()
-    print(cellular.current_generation)
 
