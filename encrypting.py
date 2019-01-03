@@ -9,7 +9,6 @@ class Secret_key(QMainWindow):
         self.ui = encrypt_ui.Ui_Dialog()
         self.cellular = None
         self.ui.setupUi(self)
-        self.ui.generate_key.clicked.connect(self.generate_clicked)
         self.ui.encrypt_key.clicked.connect(self.encrypt_clicked) #podlacza przycisk do funckji
         self.ui.decrypt_key.clicked.connect(self.decrypt_clicked)
 
@@ -35,23 +34,20 @@ class Secret_key(QMainWindow):
         return tmp
 
     @pyqtSlot()
-    def generate_clicked(self): #tworzy klucz
-        print("test")
-
-
-    @pyqtSlot()
     def encrypt_clicked(self): #zmienai na postac binarna jesli klucz nie jest pusty i robi XOR
-        if True:
+        if self.ui.rule_box.text() is not "": #wykona sie tylko jezeli podamy regule
+            if self.ui.initial_state.text() is "": #tutaj wchodzi bez podanych wartosci poczatkowych
+                self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.ui.text_binary_encrypted.text())+random.randrange(10)), int(self.ui.rule_box.text()))
+            else:  #tutaj wchodzi z podanymi wartosciami poczatkowymi
+                self.cellular = ca.CellularAutomaton(
+                    self.nielosowe_zera_i_jedynki() , int(self.ui.rule_box.text()))
 
-            self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.ui.text_binary_encrypted.text())+random.randrange(5)), 53)
+            self.iterate_iterate() # tworzy generacje
 
-            self.iterate_iterate()
+            print(self.return_haslo_8bit()) #bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
 
-            print(self.return_haslo_8bit())
-            # = self.bits2string(self.return_haslo_8bit())
-            #self.ui.generated_key_box.setText(x)
-            print(self.concatenate_list_data(self.return_haslo_8bit()))
-            binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())
+            print(self.concatenate_list_data(self.return_haslo_8bit())) #laczy powyzsza liste w stringa
+            binary_text = self.string2bits(self.ui.text_to_encrypt_box.text()) # wrzuca tekst binarny w okienko
 
             binary_text_string = "" #laczy liste binarna tekstu w jeden lancuch
             for bits_key in binary_text:
@@ -72,12 +68,6 @@ class Secret_key(QMainWindow):
                 lista.append(tmp[i:i+8])
                 i+=8
             self.ui.decrypted_message.setText(self.bits2string(lista))
-
-    def zwroc_8(self):
-
-        for i in range(8):
-            self.cellular.iterate()
-
 
     def return_kolumna(self,index):
         tmp = ""
@@ -103,14 +93,20 @@ class Secret_key(QMainWindow):
             result += str(element)
         return result
 
-    def losowe_zera_i_jedynki(self,ilosc_losowych_zer_i_jedynek):
+    def nielosowe_zera_i_jedynki(self):
         lista = []
-        for licznik in range(ilosc_losowych_zer_i_jedynek):
-            lista.append(str(random.randrange(2)))
+        tmp = self.ui.initial_state.text()
+        for licznik in range(len(self.ui.initial_state.text())):  # to zwraca losowy stan poczatkowy jezeli user nie wpisal
+            lista.append(str(tmp[licznik]))
         return lista
 
+    def losowe_zera_i_jedynki(self,ilosc_losowych_zer_i_jedynek):
+        lista = []
+        while ilosc_losowych_zer_i_jedynek < len(self.ui.text_to_encrypt_box.text()):
+            #bez tego czasem klucz generowal sie krotszy niz tekst do zaszyfrowania,ale tym to naprawilem
+            #hasztag programowanie ekstremalne
+            ilosc_losowych_zer_i_jedynek = len(self.ui.text_to_encrypt_box.text()) +random.randrange(len(self.ui.text_to_encrypt_box.text()))
 
-   # def ca_key(self):
-        #self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(8), 53)  # , non_uniform_rules=[53, 110, 34, 21, 3,43,9,2,3])
-
-
+        for licznik in range(ilosc_losowych_zer_i_jedynek): #to zwraca losowy stan poczatkowy jezeli user nie wpisal
+            lista.append(str(random.randrange(2)))
+        return lista
