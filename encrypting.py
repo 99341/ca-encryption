@@ -1,6 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 import string, random, encrypt_ui
+from math import log2 as lg2
 import ca
 
 class Secret_key(QMainWindow):
@@ -68,20 +69,23 @@ class Secret_key(QMainWindow):
                     self.cellular = ca.CellularAutomaton(
                         self.nielosowe_zera_i_jedynki() , non_uniform_rules=self.rules)
 
-            self.iterate_iterate() # tworzy generacje
+            self.iterate_iterate(len(self.ui.text_to_encrypt_box.text())*8+random.randrange(3)*4) # tworzy generacje
 
-            print(self.return_haslo_8bit()) #bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+            self.generated_password = self.return_haslo_8bit(0)
 
-            print(self.concatenate_list_data(self.return_haslo_8bit())) #laczy powyzsza liste w stringa
+
+            print(self.return_haslo_8bit(0)) #bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+
+            print(self.concatenate_list_data(self.return_haslo_8bit(0))) #laczy powyzsza liste w stringa
             binary_text = self.string2bits(self.ui.text_to_encrypt_box.text()) # wrzuca tekst binarny w okienko
 
             binary_text_string = "" #laczy liste binarna tekstu w jeden lancuch
             for bits_key in binary_text:
                 binary_text_string += bits_key
 
-            self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
+            #self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
             self.ui.text_binary.setText(binary_text_string)
-            self.ui.key_binary.setText(self.concatenate_list_data(self.return_haslo_8bit()))
+            self.ui.key_binary.setText(self.return_haslo_8bit(0))
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(),self.ui.key_binary.text()))
 
             self.save()
@@ -120,15 +124,18 @@ class Secret_key(QMainWindow):
             tmp += i[index]
         return tmp
 
-    def iterate_iterate(self):
-        for i in range(8):
+    def iterate_iterate(self, iterations_counter):
+        for i in range(iterations_counter):
             self.cellular.iterate()
 
-    def return_haslo_8bit(self):
+    def return_haslo_8bit(self, index): #8bit w nazwie jest mylące
+        lista_pomocnicza = self.return_kolumna(index)
 
-        lista_pomocnicza = []
-        for j in range(self.cellular.automaton_length):
-            lista_pomocnicza.append(self.return_kolumna(j))
+
+
+         # lista_pomocnicza = []
+         # for j in range(self.cellular.automaton_length):
+         #   lista_pomocnicza.append(self.return_kolumna(j))
 
         return lista_pomocnicza
 
@@ -157,3 +164,34 @@ class Secret_key(QMainWindow):
         for licznik in range(ilosc_losowych_zer_i_jedynek): #to zwraca losowy stan poczatkowy jezeli user nie wpisal
             lista.append(str(random.randrange(2)))
         return lista
+
+    def liczymy_ph(self, ministring,maxistring): ### 1101 101010100101011101010010110
+        i =0
+        licznik_czworek = 0
+        powtorzona_czworka = 0
+        while i <len(maxistring)-3:
+            licznik_czworek += 1
+
+        while i < licznik_czworek:
+            if ministring[0:3] == maxistring[i:i+3]:
+                powtorzona_czworka += 1
+
+        return powtorzona_czworka/licznik_czworek
+
+    def string_na_czesci(self,h):
+        czworki = []
+        iterator = 0
+        while iterator < len(self.generated_password) - h+1:
+            czworki.append(self.generated_password[iterator:iterator+h])
+            iterator+=h
+        return czworki
+
+    def entropia(self):
+        entropia_value = 0
+        lista_czworek = self.string_na_czesci(4) # dorobic pole z h
+
+        for czworka in lista_czworek:
+            zmienna = self.liczymy_ph(czworka,self.generated_password)
+            entropia_value+= zmienna*lg2(zmienna)
+
+        return entropia_value*(-1)

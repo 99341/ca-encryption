@@ -4,6 +4,7 @@ class CellularAutomaton:
     # non_uniform_rules - podajemy liste zasad dla poszczegolnych komorek
     def __init__(self, generation, uniform_rule=None, non_uniform_rules=None):
         self.generations_list = []
+        self.rules_list = []
         self.current_generation = generation
         self.automaton_length = len(generation)
         if uniform_rule is not None:
@@ -11,7 +12,8 @@ class CellularAutomaton:
             for i in range(self.automaton_length):
                 self.rules_list.append(uniform_rule)
         elif non_uniform_rules is not None:
-            self.rules_list = non_uniform_rules
+            for i in range(self.automaton_length):
+                self.rules_list += non_uniform_rules  #narazie dziala, moze sie wymysli cos lepszego
 
     # generowanie stanu komorki o indeksie index w nowej generacji
     # tego nie uzywamy poza klasa
