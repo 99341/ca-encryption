@@ -10,6 +10,7 @@ class Secret_key(QMainWindow):
         self.ui = encrypt_ui.Ui_Dialog()
         self.cellular = None
         self.rules = None
+        self.entropie = None
         self.ui.setupUi(self)
         self.ui.encrypt_key.clicked.connect(self.encrypt_clicked) #podlacza przycisk do funckji
         self.ui.decrypt_key.clicked.connect(self.decrypt_clicked)
@@ -126,13 +127,13 @@ class Secret_key(QMainWindow):
                 len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4)  # tworzy generacje
 
             # wylicza entropie dla wszystkich kolumn
-            entropie = []
+            self.entropie = []
             for i in range(self.cellular.automaton_length):
-                entropie.append(self.entropia(self.return_pseudorandom_number_sequence(i)))
-                print(entropie[i])
+                self.entropie.append(self.entropia(self.return_pseudorandom_number_sequence(i)))
+                print(self.entropie[i])
 
             # wybiera kolumne o najwiekszej entropii
-            self.generated_password = self.return_pseudorandom_number_sequence(entropie.index(max(entropie)))
+            self.generated_password = self.return_pseudorandom_number_sequence(self.entropie.index(max(self.entropie)))
 
             print(self.return_pseudorandom_number_sequence(
                 0))  # bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
@@ -147,28 +148,35 @@ class Secret_key(QMainWindow):
 
             # self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
             self.ui.text_binary.setText(binary_text_string)
-            self.ui.key_binary.setText(self.return_pseudorandom_number_sequence(0))
+            self.ui.key_binary.setText(self.generated_password)
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(), self.ui.key_binary.text()))
 
             self.save()
 
     def save(self):
         file = open('output.txt','w')
+        file.write("Text: \n" + self.ui.text_to_encrypt_box.text())
+        file.write("\n")
         file.write("Key: \n" + self.ui.key_binary.text())
         file.write("\n")
         file.write("\nEncrypted message: \n" + self.ui.encrypted_message.text())
         file.write("\n")
-        file.write("\nGenerations:\n")
+        file.write("\nIterations:\n")
         for n in self.cellular.generations_list:
             for item in n:
                 file.write("%s" % item)
             file.write("\n")
         file.write("\n")
+        file.write("\nEntropy values:\n")
+        for val in self.entropie:
+            file.write("%s " % val)
+        file.write("\n")
         file.write("\nRules:\n")
         if type(self.cellular.rules_list) is list:
             # print(self.cellular.rules_list)
             for m in self.cellular.rules_list:
-                    file.write("%s\n" % m)
+                file.write("%s " % m)
+            file.write("\n")
 
     @pyqtSlot()
     def decrypt_clicked(self):
