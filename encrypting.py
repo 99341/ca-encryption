@@ -43,13 +43,14 @@ class Secret_key(QMainWindow):
 
         return False
 
+    '''
     @pyqtSlot()
     def encrypt_clicked(self): #zmienai na postac binarna jesli klucz nie jest pusty i robi XOR
         if self.ui.rule_box.text() is not "": #wykona sie tylko jezeli podamy regule
 
             if self.check_if_non_uniform():
                 tmp = self.ui.rule_box.text()
-                self.rules =  tmp.split(' ')
+                self.rules = tmp.split(' ')
                 self.rules = list(map(int, self.rules))
             else:
                 self.rules = [self.ui.rule_box.text()]
@@ -61,13 +62,13 @@ class Secret_key(QMainWindow):
                     self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.ui.text_binary_encrypted.text())+random.randrange(10)), self.rules)
                 else:  #tutaj wchodzi z podanymi wartosciami poczatkowymi
                     self.cellular = ca.CellularAutomaton(
-                        self.nielosowe_zera_i_jedynki() , self.rules)
+                        self.nielosowe_zera_i_jedynki(), self.rules)
             else:
                 if self.ui.initial_state.text() is "": #tutaj wchodzi bez podanych wartosci poczatkowych
                     self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.rules)), non_uniform_rules=self.rules)
                 else:  #tutaj wchodzi z podanymi wartosciami poczatkowymi
                     self.cellular = ca.CellularAutomaton(
-                        self.nielosowe_zera_i_jedynki() , non_uniform_rules=self.rules)
+                        self.nielosowe_zera_i_jedynki(), non_uniform_rules=self.rules)
 
             self.iterate_iterate(len(self.ui.text_to_encrypt_box.text())*8+random.randrange(3)*4) # tworzy generacje
 
@@ -89,9 +90,70 @@ class Secret_key(QMainWindow):
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(),self.ui.key_binary.text()))
 
             self.save()
+            
+    '''
+
+    @pyqtSlot()
+    def encrypt_clicked(self):  # zmienai na postac binarna jesli klucz nie jest pusty i robi XOR
+        if self.ui.rule_box.text() is not "":  # wykona sie tylko jezeli podamy regule
+
+            if self.check_if_non_uniform():
+                tmp = self.ui.rule_box.text()
+                self.rules = tmp.split(' ')
+                self.rules = list(map(int, self.rules))
+            else:
+                self.rules = [self.ui.rule_box.text()]
+
+            if len(self.rules) == 1:
+                self.rules = int(self.rules[0])
+
+                if self.ui.initial_state.text() is "":  # tutaj wchodzi bez podanych wartosci poczatkowych
+                    self.cellular = ca.CellularAutomaton(
+                        self.losowe_zera_i_jedynki(len(self.ui.text_binary_encrypted.text()) + random.randrange(10)),
+                        self.rules)
+                else:  # tutaj wchodzi z podanymi wartosciami poczatkowymi
+                    self.cellular = ca.CellularAutomaton(
+                        self.nielosowe_zera_i_jedynki(), self.rules)
+            else:
+                if self.ui.initial_state.text() is "":  # tutaj wchodzi bez podanych wartosci poczatkowych
+                    self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.rules)),
+                                                         non_uniform_rules=self.rules)
+                else:  # tutaj wchodzi z podanymi wartosciami poczatkowymi
+                    self.cellular = ca.CellularAutomaton(
+                        self.nielosowe_zera_i_jedynki(), non_uniform_rules=self.rules)
+
+            self.iterate_iterate(
+                len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4)  # tworzy generacje
+
+            # wylicza entropie dla wszystkich kolumn
+            entropie = []
+            for i in range(self.cellular.automaton_length):
+                entropie.append(self.entropia(self.return_pseudorandom_number_sequence(i)))
+                print(entropie[i])
+
+            # wybiera kolumne o najwiekszej entropii
+            self.generated_password = self.return_pseudorandom_number_sequence(entropie.index(max(entropie)))
+
+            print(self.return_pseudorandom_number_sequence(
+                0))  # bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+
+            print(self.concatenate_list_data(
+                self.return_pseudorandom_number_sequence(0)))  # laczy powyzsza liste w stringa
+            binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())  # wrzuca tekst binarny w okienko
+
+            binary_text_string = ""  # laczy liste binarna tekstu w jeden lancuch
+            for bits_key in binary_text:
+                binary_text_string += bits_key
+
+            # self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
+            self.ui.text_binary.setText(binary_text_string)
+            self.ui.key_binary.setText(self.return_pseudorandom_number_sequence(0))
+            self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(), self.ui.key_binary.text()))
+
+            self.save()
 
     def save(self):
-        file =  open('output.txt','w')
+        file = open('output.txt','w')
         file.write("Key: \n" + self.ui.key_binary.text())
         file.write("\n")
         file.write("\nEncrypted message: \n" + self.ui.encrypted_message.text())
@@ -104,6 +166,7 @@ class Secret_key(QMainWindow):
         file.write("\n")
         file.write("\nRules:\n")
         if type(self.cellular.rules_list) is list:
+            # print(self.cellular.rules_list)
             for m in self.cellular.rules_list:
                     file.write("%s\n" % m)
 
@@ -118,7 +181,7 @@ class Secret_key(QMainWindow):
                 i+=8
             self.ui.decrypted_message.setText(self.bits2string(lista))
 
-    def return_kolumna(self,index):
+    def return_column(self, index):
         tmp = ""
         for i in self.cellular.generations_list:
             tmp += i[index]
@@ -129,7 +192,7 @@ class Secret_key(QMainWindow):
             self.cellular.iterate()
 
     def return_pseudorandom_number_sequence(self, index):
-        lista_pomocnicza = self.return_kolumna(index)
+        lista_pomocnicza = self.return_column(index)
 
 
 
@@ -202,11 +265,11 @@ class Secret_key(QMainWindow):
     '''
 
     # normalnie dzieli string na czesci o dlugosci h, dajac True zwraca jedynie unikalne elementy
-    def string_na_czesci(self, h, unikalne=False):
+    def string_na_czesci(self, sekwencja,  h, unikalne=False):
         czworki = []
         iterator = 0
-        while iterator < len(self.generated_password) - h + 1:
-            czworki.append(self.generated_password[iterator:iterator + h])
+        while iterator < len(sekwencja) - h + 1:
+            czworki.append(sekwencja[iterator:iterator + h])
             iterator += h
 
         if unikalne is True:
@@ -214,12 +277,12 @@ class Secret_key(QMainWindow):
 
         return czworki
 
-    def entropia(self):
+    def entropia(self, sekwencja):
         entropia_value = 0
-        lista_czworek = self.string_na_czesci(4, True) # dorobic pole z h
+        lista_czworek = self.string_na_czesci(sekwencja, 4, True) # dorobic pole z h
 
         for czworka in lista_czworek:
-            zmienna = self.liczymy_ph(czworka,self.generated_password)
+            zmienna = self.liczymy_ph(czworka, sekwencja)
             entropia_value += zmienna*lg2(zmienna)
 
         return entropia_value*(-1)
