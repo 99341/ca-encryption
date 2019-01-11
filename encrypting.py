@@ -71,12 +71,12 @@ class Secret_key(QMainWindow):
 
             self.iterate_iterate(len(self.ui.text_to_encrypt_box.text())*8+random.randrange(3)*4) # tworzy generacje
 
-            self.generated_password = self.return_haslo_8bit(0)
+            self.generated_password = self.return_pseudorandom_number_sequence(0)
 
 
-            print(self.return_haslo_8bit(0)) #bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+            print(self.return_pseudorandom_number_sequence(0)) #bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
 
-            print(self.concatenate_list_data(self.return_haslo_8bit(0))) #laczy powyzsza liste w stringa
+            print(self.concatenate_list_data(self.return_pseudorandom_number_sequence(0))) #laczy powyzsza liste w stringa
             binary_text = self.string2bits(self.ui.text_to_encrypt_box.text()) # wrzuca tekst binarny w okienko
 
             binary_text_string = "" #laczy liste binarna tekstu w jeden lancuch
@@ -85,7 +85,7 @@ class Secret_key(QMainWindow):
 
             #self.ui.generated_key_box.setText(self.bits2string(self.return_haslo_8bit()))
             self.ui.text_binary.setText(binary_text_string)
-            self.ui.key_binary.setText(self.return_haslo_8bit(0))
+            self.ui.key_binary.setText(self.return_pseudorandom_number_sequence(0))
             self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(),self.ui.key_binary.text()))
 
             self.save()
@@ -128,7 +128,7 @@ class Secret_key(QMainWindow):
         for i in range(iterations_counter):
             self.cellular.iterate()
 
-    def return_haslo_8bit(self, index): #8bit w nazwie jest mylące
+    def return_pseudorandom_number_sequence(self, index):
         lista_pomocnicza = self.return_kolumna(index)
 
 
@@ -165,6 +165,7 @@ class Secret_key(QMainWindow):
             lista.append(str(random.randrange(2)))
         return lista
 
+    '''
     def liczymy_ph(self, ministring,maxistring): ### 1101 101010100101011101010010110
         i =0
         licznik_czworek = 0
@@ -177,7 +178,20 @@ class Secret_key(QMainWindow):
                 powtorzona_czworka += 1
 
         return powtorzona_czworka/licznik_czworek
+    '''
 
+    # teraz ph jest dobrze, nie ruszac
+    def liczymy_ph(self, ministring,maxistring): ### 1101 101010100101011101010010110
+        i = 0
+        powtorzona_czworka = 0
+        licznik_czworek = len(maxistring)-3 #to zamiast petli bo kazda liczba oprocz trzech ostatnich ma swoja czworke
+        while i < licznik_czworek:
+            if ministring == maxistring[i:i+4]: #ministring bez nawiasow bo zawsze ma 4
+                powtorzona_czworka += 1
+            i += 1
+
+        return powtorzona_czworka/licznik_czworek
+    '''
     def string_na_czesci(self,h):
         czworki = []
         iterator = 0
@@ -185,13 +199,27 @@ class Secret_key(QMainWindow):
             czworki.append(self.generated_password[iterator:iterator+h])
             iterator+=h
         return czworki
+    '''
+
+    # normalnie dzieli string na czesci o dlugosci h, dajac True zwraca jedynie unikalne elementy
+    def string_na_czesci(self, h, unikalne=False):
+        czworki = []
+        iterator = 0
+        while iterator < len(self.generated_password) - h + 1:
+            czworki.append(self.generated_password[iterator:iterator + h])
+            iterator += h
+
+        if unikalne is True:
+            czworki = list(set(czworki))
+
+        return czworki
 
     def entropia(self):
         entropia_value = 0
-        lista_czworek = self.string_na_czesci(4) # dorobic pole z h
+        lista_czworek = self.string_na_czesci(4, True) # dorobic pole z h
 
         for czworka in lista_czworek:
             zmienna = self.liczymy_ph(czworka,self.generated_password)
-            entropia_value+= zmienna*lg2(zmienna)
+            entropia_value += zmienna*lg2(zmienna)
 
         return entropia_value*(-1)
