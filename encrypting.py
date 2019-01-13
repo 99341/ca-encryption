@@ -256,8 +256,10 @@ class Secret_key(QMainWindow):
         i = 0
         powtorzona_czworka = 0
         licznik_czworek = len(maxistring)-3 #to zamiast petli bo kazda liczba oprocz trzech ostatnich ma swoja czworke
+                                            #to wyzej moze przerobic na: int"(self.ui.comboBox.currentText())-1"
+                                            # zamiast -3 na sztywno, bo z 2 sie wykrzaczy
         while i < licznik_czworek:
-            if ministring == maxistring[i:i+4]: #ministring bez nawiasow bo zawsze ma 4
+            if ministring == maxistring[i:i+4]: #ministring bez nawiasow bo zawsze ma 4, TO CHYBA TEZ TRZEBA ZMIENIC
                 powtorzona_czworka += 1
             i += 1
 
@@ -277,7 +279,7 @@ class Secret_key(QMainWindow):
         czworki = []
         iterator = 0
         while iterator < len(sekwencja) - h + 1:
-            czworki.append(sekwencja[iterator:iterator + h])
+            czworki.append(sekwencja[iterator:iterator + h]) #TU WSZEDZIE H ZOSTAWIAMY BO TO PRZEKAZANY ARGUMENT
             iterator += h
 
         if unikalne is True:
@@ -287,10 +289,13 @@ class Secret_key(QMainWindow):
 
     def entropia(self, sekwencja):
         entropia_value = 0
-        lista_czworek = self.string_na_czesci(sekwencja, 4, True) # dorobic pole z h
+        lista_czworek = self.string_na_czesci(sekwencja, int(self.ui.comboBox.currentText()), True) # DOROBIONE pole z h
 
         for czworka in lista_czworek:
             zmienna = self.liczymy_ph(czworka, sekwencja)
             entropia_value += zmienna*lg2(zmienna)
 
         return entropia_value*(-1)
+
+#linijka zwracajaca wartosc z  h - int(self.ui.comboBox.currentText())
+#nazwe zmiennej czworki wypadaloby by zmienic bo w sumie tez inne dlugosci teraz przyjmujemy
