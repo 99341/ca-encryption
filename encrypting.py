@@ -254,16 +254,16 @@ class Secret_key(QMainWindow):
     # teraz ph jest dobrze, nie ruszac
     def liczymy_ph(self, ministring,maxistring): ### 1101 101010100101011101010010110
         i = 0
-        powtorzona_czworka = 0
-        licznik_czworek = len(maxistring)-3 #to zamiast petli bo kazda liczba oprocz trzech ostatnich ma swoja czworke
+        powtorzona_czesc = 0
+        licznik_czesci = len(maxistring)-(len(ministring)-1) #to zamiast petli bo kazda liczba oprocz trzech ostatnich ma swoja czworke
                                             #to wyzej moze przerobic na: int"(self.ui.comboBox.currentText())-1"
                                             # zamiast -3 na sztywno, bo z 2 sie wykrzaczy
-        while i < licznik_czworek:
-            if ministring == maxistring[i:i+4]: #ministring bez nawiasow bo zawsze ma 4, TO CHYBA TEZ TRZEBA ZMIENIC
-                powtorzona_czworka += 1
+        while i < licznik_czesci:
+            if ministring == maxistring[i:i+len(ministring)]: #ministring bez nawiasow bo zawsze ma 4, TO CHYBA TEZ TRZEBA ZMIENIC
+                powtorzona_czesc += 1
             i += 1
 
-        return powtorzona_czworka/licznik_czworek
+        return powtorzona_czesc/licznik_czesci
     '''
     def string_na_czesci(self,h):
         czworki = []
@@ -276,26 +276,32 @@ class Secret_key(QMainWindow):
 
     # normalnie dzieli string na czesci o dlugosci h, dajac True zwraca jedynie unikalne elementy
     def string_na_czesci(self, sekwencja,  h, unikalne=False):
-        czworki = []
+        czesci = []
         iterator = 0
         while iterator < len(sekwencja) - h + 1:
-            czworki.append(sekwencja[iterator:iterator + h]) #TU WSZEDZIE H ZOSTAWIAMY BO TO PRZEKAZANY ARGUMENT
+            czesci.append(sekwencja[iterator:iterator + h]) #TU WSZEDZIE H ZOSTAWIAMY BO TO PRZEKAZANY ARGUMENT
             iterator += h
 
         if unikalne is True:
-            czworki = list(set(czworki))
+            czesci = list(set(czesci))
 
-        return czworki
+        return czesci
 
     def entropia(self, sekwencja):
         entropia_value = 0
-        lista_czworek = self.string_na_czesci(sekwencja, int(self.ui.comboBox.currentText()), True) # DOROBIONE pole z h
+        lista_czesci_dzielonych_na_h = self.string_na_czesci(sekwencja, int(self.ui.comboBox.currentText()), True) # DOROBIONE pole z h
+        k = 2  # liczba mozliwych wartosci, ktora przyjmie komorka
+        h = int(self.ui.comboBox.currentText())
+        limit = k ** h
 
-        for czworka in lista_czworek:
-            zmienna = self.liczymy_ph(czworka, sekwencja)
+        i = 0
+        for czesc in lista_czesci_dzielonych_na_h:
+            if i == limit:
+                break
+            zmienna = self.liczymy_ph(czesc, sekwencja)
             entropia_value += zmienna*lg2(zmienna)
+            i += 1
 
         return entropia_value*(-1)
 
 #linijka zwracajaca wartosc z  h - int(self.ui.comboBox.currentText())
-#nazwe zmiennej czworki wypadaloby by zmienic bo w sumie tez inne dlugosci teraz przyjmujemy
