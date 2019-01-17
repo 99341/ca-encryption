@@ -14,6 +14,27 @@ class Secret_key(QMainWindow):
         self.ui.setupUi(self)
         self.ui.encrypt_key.clicked.connect(self.encrypt_clicked) #podlacza przycisk do funckji
         self.ui.decrypt_key.clicked.connect(self.decrypt_clicked)
+        self.acceptance_threshold = 3.9
+        self.cells_number = 0
+        self.entropy = 0
+
+    def generate_random_rules(self, number):
+        self.rules = []
+        for i in range(number):
+            self.rules.append(random.randrange(0, 256))
+
+    def generate_recommended_rules(self, number):
+        self.rules = []
+        for i in range(number):
+            val = random.randrange(0, 4)
+            if val == 0:
+                self.rules.append(90)
+            elif val == 1:
+                self.rules.append(105)
+            elif val == 2:
+                self.rules.append(150)
+            elif val == 3:
+                self.rules.append(165)
 
     def id_generator(self, size, chars=string.digits + string.ascii_letters):
         return str(''.join(random.choice(chars) for _ in range(size))) #generuje klucz, tu musza byc automaty
@@ -123,10 +144,10 @@ class Secret_key(QMainWindow):
                     self.cellular = ca.CellularAutomaton(
                         self.nielosowe_zera_i_jedynki(), non_uniform_rules=self.rules)
 
-            self.iterate_iterate(
-                len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4)  # tworzy generacje
+            #self.iterate_iterate(
+            #    len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4)  # tworzy generacje
 
-            # wylicza entropie dla wszystkich kolumn
+            '''# wylicza entropie dla wszystkich kolumn
             self.entropie = []
             for i in range(self.cellular.automaton_length):
                 self.entropie.append(self.entropia(self.return_pseudorandom_number_sequence(i)))
@@ -134,12 +155,29 @@ class Secret_key(QMainWindow):
 
             # wybiera kolumne o najwiekszej entropii
             self.generated_password = self.return_pseudorandom_number_sequence(self.entropie.index(max(self.entropie)))
+            
+            '''
+            entropia = 0
+            while entropia < self.acceptance_threshold:
+                self.cellular = ca.CellularAutomaton(
+                    self.losowe_zera_i_jedynki(len(self.ui.text_binary_encrypted.text()) + random.randrange(10)),
+                    non_uniform_rules=self.rules)
+                length = len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4
+                if length < 16 * int(self.ui.comboBox.currentText()):
+                    length = 16 * int(self.ui.comboBox.currentText())
+                self.iterate_iterate(length)
+                rand_index = random.randrange(0, self.cellular.automaton_length)
+                self.generated_password = self.return_pseudorandom_number_sequence(rand_index)
+                entropia = self.entropia(self.generated_password)
+                print(self.generated_password + " " + str(entropia))
 
-            print(self.return_pseudorandom_number_sequence(
-                0))  # bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+            self.entropy = entropia
 
-            print(self.concatenate_list_data(
-                self.return_pseudorandom_number_sequence(0)))  # laczy powyzsza liste w stringa
+            #print(self.return_pseudorandom_number_sequence(
+            #    0))  # bierze 1 bit z kazdej generacji i tworzy 8 bitowy klucz w postaci listy
+
+            #print(self.concatenate_list_data(
+            #    self.return_pseudorandom_number_sequence(0)))  # laczy powyzsza liste w stringa
             binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())  # wrzuca tekst binarny w okienko
 
             binary_text_string = ""  # laczy liste binarna tekstu w jeden lancuch
@@ -167,9 +205,8 @@ class Secret_key(QMainWindow):
                 file.write("%s" % item)
             file.write("\n")
         file.write("\n")
-        file.write("\nEntropy values:\n")
-        for val in self.entropie:
-            file.write("%s " % val)
+        file.write("\nEntropy value: ")
+        file.write("%s " % self.entropy)
         file.write("\n")
         file.write("\nRules:\n")
         if type(self.cellular.rules_list) is list:
