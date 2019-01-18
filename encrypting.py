@@ -59,7 +59,9 @@ class SecretKey(QMainWindow):
     def encrypt_clicked(self):  # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
         if self.ui.cells_number.text() is not "" and self.ui.text_to_encrypt_box.text() is not "":
             entropia = 0
+            self.acceptance_threshold = float(self.ui.eat_box.currentText())
             while entropia < self.acceptance_threshold:
+                self.acceptance_threshold = float(self.ui.eat_box.currentText())
                 if self.ui.radio_specified_rules.isChecked():  # tutaj wchodzi jak sa zaznacozne reguly 90, 105, 150, 165
                     self.generate_recommended_rules(int(self.ui.cells_number.text()))
 
@@ -77,19 +79,19 @@ class SecretKey(QMainWindow):
                 entropia = self.entropia(self.generated_password)
                 print(self.generated_password + " " + str(entropia))
 
-                self.entropy = entropia
+            self.entropy = entropia
 
-                binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())  # wrzuca tekst binarny w okienko
+            binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())  # wrzuca tekst binarny w okienko
 
-                binary_text_string = ""  # laczy liste binarna tekstu w jeden lancuch
-                for bits_key in binary_text:
-                    binary_text_string += bits_key
+            binary_text_string = ""  # laczy liste binarna tekstu w jeden lancuch
+            for bits_key in binary_text:
+                binary_text_string += bits_key
 
-                self.ui.text_binary.setText(binary_text_string)
-                self.ui.key_binary.setText(self.generated_password)
-                self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(), self.ui.key_binary.text()))
+            self.ui.text_binary.setText(binary_text_string)
+            self.ui.key_binary.setText(self.generated_password)
+            self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(), self.ui.key_binary.text()))
 
-                self.save()
+            self.save()
 
     def save(self):
         file = open('output.txt', 'w')
