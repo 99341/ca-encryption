@@ -13,6 +13,5 @@ Zrobione:
 
 •Generowanie klucza za pomocą automatów komórkowych
 
-Do zrobienia:
-
 •zapisywanie do pliku
+

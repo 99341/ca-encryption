@@ -4,7 +4,7 @@ import encrypting as ec
 
 
 app = QApplication(sys.argv)
-window = ec.Secret_key()
+window = ec.SecretKey()
 window.setWindowTitle('Secret key encrypting')
 window.show()
 sys.exit(app.exec_())

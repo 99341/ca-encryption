@@ -12,8 +12,6 @@ class CellularAutomaton:
             for i in range(self.automaton_length):
                 self.rules_list.append(uniform_rule)
         elif non_uniform_rules is not None:
-            # for i in range(self.automaton_length):
-            #    self.rules_list += non_uniform_rules  #narazie dziala, moze sie wymysli cos lepszego (to jednak jest źle)
             self.rules_list = non_uniform_rules
 
     # generowanie stanu komorki o indeksie index w nowej generacji

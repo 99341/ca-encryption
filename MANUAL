@@ -1,0 +1,28 @@
+MANUAL
+
+Program szyfruje wiadomość za pomocą automatów komórkowych i szyfru Vernama.
+
+Zakładka "Encrypt"
+
+Insert text to encrypt - w tym polu użytkownik wpisuje tekst do zaszyfrowania
+Cells number - liczba generowanych komórek automatu (im większa wartość tym większa szansa na dużą wartość entropii)
+h - długość pojedyńczego bloku komórek porównywany z całym łańcuchem automatów komórkowych w celu wyliczenia entropii
+Entopy acceptance threshold - pole określa jaka wartość entropii jest satysfakcjonująca, jeżeli wyliczona entropia przekroczy
+wartość progu to program kończy działanie, ponieważ klucz o odpowiedniej entropii został wyliczony
+Rules 90, 105, 150, 165 - reguły automatów komórkowych o największym stopniu entropii, wiadomości zaszyfrowane za pomocą tych reguł
+zawsze będą miały klucz o wysokim poziomie entropii
+Random Rules - losowo generowany zestaw reguł, bez pewności, że będzie miał wysoką entropię
+
+Binary text - pole w którym wypisywana jest wiadomość w postaci ciągu binarnego
+
+Binary key - pole w którym wypisywany jest klucz szyfrujący w postaci ciągu binarnego
+
+Binary encrypted text - Pole w którym wypisywana jest wiadomość w postaci binarnej zaszyfrowana za pomocą klucza i operacji logicznej XOR
+
+Zakładka "Decrypt"
+
+Binary encrypted key - Pole, do którego należy wkleić zaszyfrowaną wiadomość w postaci binarnej
+
+Binary key - Pole, do którego należy wkleić klucz w postaci binarnej
+
+Decrypted text - Pole, w którym wypisywana jest wartość odszyfrowanego tekstu 
