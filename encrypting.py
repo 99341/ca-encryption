@@ -1,23 +1,39 @@
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
 import string, random, encrypt_ui
 from math import log2 as lg2
 import ca
-
+import numpy as np
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+import io
 
 class SecretKey(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
         self.ui = encrypt_ui.Ui_Dialog()
+        self.fname = None
         self.cellular = None
+        self.String_Bits = ""
+        self.encrypted_message = ""
+        self.Bits = None
         self.rules = None
         self.entropie = None
         self.ui.setupUi(self)
         self.ui.encrypt_key.clicked.connect(self.encrypt_clicked) #podlacza przycisk do funkcji
         self.ui.decrypt_key.clicked.connect(self.decrypt_clicked) #jw
+        self.ui.load_image.clicked.connect(self.load_image_clicked)
+        self.ui.set_seed.clicked.connect(self.load_set_seed)
         self.acceptance_threshold = float(self.ui.eat_box.currentText())
         self.cells_number = 0
         self.entropy = 0
+
+    @pyqtSlot()
+    def load_set_seed(self):
+        tmp_seed = self.ui.seed_amount_box.text()
+        if tmp_seed.isdecimal():
+            random.seed(int(tmp_seed))
 
     def generate_random_rules(self, number):
         self.rules = []
@@ -57,7 +73,14 @@ class SecretKey(QMainWindow):
 
     @pyqtSlot()
     def encrypt_clicked(self):  # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
-        if self.ui.cells_number.text() is not "" and self.ui.text_to_encrypt_box.text() is not "":
+        if self.ui.cells_number.text() is not "" and self.fname:
+
+            Bytes = np.fromfile(self.fname, dtype="uint8")
+            self.Bits = np.unpackbits(Bytes)
+            for single_digit in np.nditer(self.Bits):
+                self.String_Bits += np.array2string(single_digit)
+
+
             entropia = 0
             self.acceptance_threshold = float(self.ui.eat_box.currentText())
             while entropia < self.acceptance_threshold:
@@ -70,7 +93,8 @@ class SecretKey(QMainWindow):
 
                 self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.rules)),
                                                      non_uniform_rules=self.rules)
-                length = len(self.ui.text_to_encrypt_box.text()) * 8 + random.randrange(3) * 4
+
+                length = len(self.String_Bits) * 8 + random.randrange(3) * 4
                 if length < 16 * int(self.ui.h_box.currentText()):
                     length = 16 * int(self.ui.h_box.currentText())
                 self.iterate_iterate(length)
@@ -81,26 +105,18 @@ class SecretKey(QMainWindow):
 
             self.entropy = entropia
 
-            binary_text = self.string2bits(self.ui.text_to_encrypt_box.text())  # wrzuca tekst binarny w okienko
-
-            binary_text_string = ""  # laczy liste binarna tekstu w jeden lancuch
-            for bits_key in binary_text:
-                binary_text_string += bits_key
-
-            self.ui.text_binary.setText(binary_text_string)
+            self.ui.text_binary.setText(self.String_Bits)
+            print(len(self.String_Bits))
             self.ui.key_binary.setText(self.generated_password)
-            self.ui.encrypted_message.setText(self.xor(self.ui.text_binary.text(), self.ui.key_binary.text()))
-
+            print(len(self.generated_password))
+            self.encrypted_message = self.xor(self.String_Bits, self.generated_password)
+            self.ui.text_binary.setText(self.String_Bits[:100])
+            self.ui.key_binary.setText(self.generated_password[:100])
+            self.ui.encrypted_message.setText(self.encrypted_message[:100])
             self.save()
 
     def save(self):
-        file = open('output.txt', 'w')
-        file.write("Text: \n" + self.ui.text_to_encrypt_box.text())
-        file.write("\n")
-        file.write("Key: \n" + self.ui.key_binary.text())
-        file.write("\n")
-        file.write("\nEncrypted message: \n" + self.ui.encrypted_message.text())
-        file.write("\n")
+        file = open('cellular_automata_info.txt', 'w')
         file.write("\nIterations:\n")
         for n in self.cellular.generations_list:
             for item in n:
@@ -116,16 +132,28 @@ class SecretKey(QMainWindow):
                 file.write("%s " % m)
             file.write("\n")
 
+        key_file = open('key.txt','w')
+        key_file.write(self.generated_password)
+        encrypted_message_file = open('encrypted_message.txt','w')
+        encrypted_message_file.write(self.encrypted_message)
+
     @pyqtSlot()
     def decrypt_clicked(self):
-        if len(self.ui.text_binary_encrypted.text()) > 0 and len(self.ui.key_binary_encrypted.text()) > 0:
-            tmp = self.xor(self.ui.text_binary_encrypted.text(), self.ui.key_binary_encrypted.text())
-            i = 0
-            lista = []
-            while (i + 8 <= len(tmp)):
-                lista.append(tmp[i:i + 8])
-                i += 8
-            self.ui.decrypted_message.setText(self.bits2string(lista))
+        with open('key.txt', 'r') as myfile:
+            key = myfile.read().replace('\n', '')
+
+
+        with open('encrypted_message.txt', 'r') as myfile:
+            encrypted_message = myfile.read().replace('\n', '')
+        tmp = self.xor(encrypted_message, key)
+
+        y = np.empty(len(tmp), dtype=np.uint8)
+        for single_digit in range(len(tmp)):
+            y[single_digit] = tmp[single_digit]  # tu sie cos pierdoli
+
+        z = np.packbits(y)
+        image = Image.open(io.BytesIO(z))
+        image.show()
 
     def return_column(self, index):
         tmp = ""
@@ -153,9 +181,9 @@ class SecretKey(QMainWindow):
         if type(self.rules) is list:
             ilosc_losowych_zer_i_jedynek = len(self.rules)
         else:
-            ilosc_losowych_zer_i_jedynek = len(self.ui.text_to_encrypt_box.text()) + random.randrange(10)
-            while ilosc_losowych_zer_i_jedynek < len(self.ui.text_to_encrypt_box.text()):
-                ilosc_losowych_zer_i_jedynek = len(self.ui.text_to_encrypt_box.text()) + random.randrange(10)
+            ilosc_losowych_zer_i_jedynek = len(self.String_Bits) + random.randrange(10)
+            while ilosc_losowych_zer_i_jedynek < len(self.String_Bits):
+                ilosc_losowych_zer_i_jedynek = len(self.String_Bits) + random.randrange(10)
 
         for licznik in range(ilosc_losowych_zer_i_jedynek):  # to zwraca losowy stan poczatkowy jezeli user nie wpisal
             lista.append(str(random.randrange(2)))
@@ -207,6 +235,16 @@ class SecretKey(QMainWindow):
             i += 1
         return entropia_value * (-1)
 
+
+    @pyqtSlot()
+    def load_image_clicked(self):
+        self.fname, _fliter = QFileDialog.getOpenFileName(self,'Open File','C:\\',"Image Files (*.jpg)")
+        self.ui.image_info.setText("Image loaded")
+        loaded_color = QColor(0,255,0)
+        self.ui.frame.setStyleSheet("QWidget { background-color: %s }" % loaded_color.name())
+
+
+
 # linijka zwracajaca wartosc z  h - int(self.ui.h_box.currentText())
 # int(self.ui.cells_number.text())  getter do cells_number
-# double(self.ui.eat_box.currentText()) getter doo entropy acceptance threshold
+# double(self.ui.eat_box.currentText()) getter do entropy acceptance threshold
