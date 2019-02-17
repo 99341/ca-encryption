@@ -1,13 +1,9 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
-import string, random, encrypt_ui
+import random, encrypt_ui
 from math import log2 as lg2
 import ca
-import numpy as np
-from PIL import Image, ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-import io
 
 class SecretKey(QMainWindow):
     def __init__(self, parent=None):
@@ -75,11 +71,12 @@ class SecretKey(QMainWindow):
     def encrypt_clicked(self):  # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
         if self.ui.cells_number.text() is not "" and self.fname:
 
-            Bytes = np.fromfile(self.fname, dtype="uint8")
+            '''Bytes = np.fromfile(self.fname, dtype="uint8")
             self.Bits = np.unpackbits(Bytes)
             for single_digit in np.nditer(self.Bits):
                 self.String_Bits += np.array2string(single_digit)
-
+            '''
+            self.String_Bits, bytes_number = self.file_to_bits(self.fname)
 
             entropia = 0
             self.acceptance_threshold = float(self.ui.eat_box.currentText())
@@ -142,18 +139,19 @@ class SecretKey(QMainWindow):
         with open('key.txt', 'r') as myfile:
             key = myfile.read().replace('\n', '')
 
-
         with open('encrypted_message.txt', 'r') as myfile:
             encrypted_message = myfile.read().replace('\n', '')
         tmp = self.xor(encrypted_message, key)
 
-        y = np.empty(len(tmp), dtype=np.uint8)
+        '''y = np.empty(len(tmp), dtype=np.uint8)
         for single_digit in range(len(tmp)):
             y[single_digit] = tmp[single_digit]  # tu sie cos pierdoli
 
         z = np.packbits(y)
         image = Image.open(io.BytesIO(z))
         image.show()
+        '''
+        self.bits_to_file(tmp, "file")
 
     def return_column(self, index):
         tmp = ""
@@ -238,10 +236,45 @@ class SecretKey(QMainWindow):
 
     @pyqtSlot()
     def load_image_clicked(self):
-        self.fname, _fliter = QFileDialog.getOpenFileName(self,'Open File','C:\\',"Image Files (*.jpg)")
-        self.ui.image_info.setText("Image loaded")
-        loaded_color = QColor(0,255,0)
+        self.fname, _fliter = QFileDialog.getOpenFileName(self, 'Open File', 'C:\\')
+        self.ui.image_info.setText("File loaded")
+        loaded_color = QColor(0, 255, 0)
         self.ui.frame.setStyleSheet("QWidget { background-color: %s }" % loaded_color.name())
+
+    # zwraca string z bitami z pliku i liczbę bajtow z pliku
+    def file_to_bits(self, filename):
+        bitstring = ""
+        i = 0
+
+        with open(filename, "rb") as f:
+            byte = f.read(1)
+            number = int.from_bytes(byte, "big")
+            bits = '{0:08b}'.format(number)
+            bitstring += bits
+            i += 1
+            while byte:
+                byte = f.read(1)
+                number = int.from_bytes(byte, "big")
+                bits = '{0:08b}'.format(number)
+                bitstring += bits
+                i += 1
+            f.close()
+        return bitstring, i
+
+    # zamienia bity na bajty, ktore zapisuje w pliku filename
+    def bits_to_file(self, bits, filename):
+        bitlist = []
+        for iterator in range(int(len(bits)/8)):
+            bitlist.append(bits[iterator * 8:iterator * 8 + 8])
+
+        with open(filename, "wb") as f:
+            bytes_list = []
+            for bit in bitlist:
+                liczba = int(bit, 2)
+                bytes_list.append(liczba.to_bytes(1, 'big'))
+            for byte in bytes_list:
+                f.write(byte)
+            f.close()
 
 
 
