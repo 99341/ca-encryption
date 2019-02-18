@@ -278,6 +278,14 @@ class SecretKey(QMainWindow):
 
 
 
+
 # linijka zwracajaca wartosc z  h - int(self.ui.h_box.currentText())
 # int(self.ui.cells_number.text())  getter do cells_number
 # double(self.ui.eat_box.currentText()) getter do entropy acceptance threshold
+
+
+#------------------------------ DODANE 18.02.2019 ------------------------------#
+
+#        self.ui.final_entropy_box('tu wypisywanie entropii na sam koniec')
+#        self.ui.currently_iterate_box.setText('tutaj licznik iteracji')
+#        self.ui.output_name_box.text('TU_NAZWA_PLIKU.JPG')
