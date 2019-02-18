@@ -286,6 +286,6 @@ class SecretKey(QMainWindow):
 
 #------------------------------ DODANE 18.02.2019 ------------------------------#
 
-#        self.ui.final_entropy_box('tu wypisywanie entropii na sam koniec')
+#        self.ui.final_entropy_box.setText('tu wypisywanie entropii na sam koniec')
 #        self.ui.currently_iterate_box.setText('tutaj licznik iteracji')
 #        self.ui.output_name_box.text('TU_NAZWA_PLIKU.JPG')
