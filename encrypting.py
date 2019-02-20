@@ -25,6 +25,7 @@ class SecretKey(QMainWindow):
         self.cells_number = 0
         self.entropy = 0
 
+
     @pyqtSlot()
     def load_set_seed(self):
         tmp_seed = self.ui.seed_amount_box.text()
@@ -68,14 +69,12 @@ class SecretKey(QMainWindow):
         return tmp
 
     @pyqtSlot()
-    def encrypt_clicked(self):  # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
+    def encrypt_clicked(self):
+        self.encryption()
+
+    def encryption(self): # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
         if self.ui.cells_number.text() is not "" and self.fname:
 
-            '''Bytes = np.fromfile(self.fname, dtype="uint8")
-            self.Bits = np.unpackbits(Bytes)
-            for single_digit in np.nditer(self.Bits):
-                self.String_Bits += np.array2string(single_digit)
-            '''
             self.String_Bits, bytes_number = self.file_to_bits(self.fname)
 
             entropia = 0
@@ -101,6 +100,7 @@ class SecretKey(QMainWindow):
                 print(self.generated_password + " " + str(entropia))
 
             self.entropy = entropia
+            self.ui.final_entropy_box.setText(str(self.entropy))
 
             self.ui.text_binary.setText(self.String_Bits)
             print(len(self.String_Bits))
@@ -143,15 +143,10 @@ class SecretKey(QMainWindow):
             encrypted_message = myfile.read().replace('\n', '')
         tmp = self.xor(encrypted_message, key)
 
-        '''y = np.empty(len(tmp), dtype=np.uint8)
-        for single_digit in range(len(tmp)):
-            y[single_digit] = tmp[single_digit]  # tu sie cos pierdoli
-
-        z = np.packbits(y)
-        image = Image.open(io.BytesIO(z))
-        image.show()
-        '''
-        self.bits_to_file(tmp, "file")
+        text = self.ui.output_name_box.text()
+        if text == "":
+            text = "file"
+        self.bits_to_file(tmp, text)
 
     def return_column(self, index):
         tmp = ""
@@ -162,6 +157,7 @@ class SecretKey(QMainWindow):
     def iterate_iterate(self, iterations_counter):
         for i in range(iterations_counter):
             self.cellular.iterate()
+            self.ui.currently_iterate_box.setText('Iteration ' + str(i + 1) + ' out of ' + str(iterations_counter))
 
     def return_pseudorandom_number_sequence(self, index):
         lista_pomocnicza = self.return_column(index)
