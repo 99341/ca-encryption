@@ -114,20 +114,23 @@ class SecretKey(QMainWindow):
 
     def save(self):
         file = open('cellular_automata_info.txt', 'w')
+        file.write("Entropy value: ")
+        file.write("%s " % self.entropy)
+        file.write("\n\nCells number: " + str(self.ui.cells_number.text()) + '\n')
+        file.write("\nh parameter: " + str(self.ui.h_box.currentText()) + '\n')
+        file.write("\nEntropy acceptance threshold: " + str(self.ui.eat_box.currentText()) + '\n')
+        file.write("\nRules:\n")
+        if type(self.cellular.rules_list) is list:
+            for m in self.cellular.rules_list:
+                file.write("%s " % m)
+            file.write("\n")
+        file.write("\nSeed: " + self.ui.seed_amount_box.text() + "\n")
         file.write("\nIterations:\n")
         for n in self.cellular.generations_list:
             for item in n:
                 file.write("%s" % item)
             file.write("\n")
         file.write("\n")
-        file.write("\nEntropy value: ")
-        file.write("%s " % self.entropy)
-        file.write("\n")
-        file.write("\nRules:\n")
-        if type(self.cellular.rules_list) is list:
-            for m in self.cellular.rules_list:
-                file.write("%s " % m)
-            file.write("\n")
 
         key_file = open('key.txt','w')
         key_file.write(self.generated_password)
