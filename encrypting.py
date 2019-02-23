@@ -75,7 +75,7 @@ class SecretKey(QMainWindow):
     def encryption(self): # zmienia na postac binarna jesli klucz nie jest pusty i robi XOR
         if self.ui.cells_number.text() is not "" and self.fname:
 
-            self.String_Bits, bytes_number = self.file_to_bits(self.fname)
+            self.String_Bits, self.bytes_number = self.file_to_bits(self.fname)
 
             entropia = 0
             self.acceptance_threshold = float(self.ui.eat_box.currentText())
@@ -250,20 +250,19 @@ class SecretKey(QMainWindow):
             number = int.from_bytes(byte, "big")
             bits = '{0:08b}'.format(number)
             bitstring += bits
-            i += 1
             while byte:
+                i += 1
                 byte = f.read(1)
                 number = int.from_bytes(byte, "big")
                 bits = '{0:08b}'.format(number)
                 bitstring += bits
-                i += 1
             f.close()
         return bitstring, i
 
     # zamienia bity na bajty, ktore zapisuje w pliku filename
     def bits_to_file(self, bits, filename):
         bitlist = []
-        for iterator in range(int(len(bits)/8)):
+        for iterator in range(self.bytes_number):
             bitlist.append(bits[iterator * 8:iterator * 8 + 8])
 
         with open(filename, "wb") as f:
