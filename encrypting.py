@@ -1,6 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from pathlib import Path
 import random, encrypt_ui
 from math import log2 as lg2
 import ca
@@ -90,7 +91,7 @@ class SecretKey(QMainWindow):
                 self.cellular = ca.CellularAutomaton(self.losowe_zera_i_jedynki(len(self.rules)),
                                                      non_uniform_rules=self.rules)
 
-                length = len(self.String_Bits) * 8 + random.randrange(3) * 4
+                length = len(self.String_Bits)
                 if length < 16 * int(self.ui.h_box.currentText()):
                     length = 16 * int(self.ui.h_box.currentText())
                 self.iterate_iterate(length)
@@ -235,7 +236,8 @@ class SecretKey(QMainWindow):
 
     @pyqtSlot()
     def load_image_clicked(self):
-        self.fname, _fliter = QFileDialog.getOpenFileName(self, 'Open File', 'C:\\')
+        home = str(Path.home())
+        self.fname, _fliter = QFileDialog.getOpenFileName(self, 'Open File', home)
         self.ui.image_info.setText("File loaded")
         loaded_color = QColor(0, 255, 0)
         self.ui.frame.setStyleSheet("QWidget { background-color: %s }" % loaded_color.name())
@@ -262,7 +264,7 @@ class SecretKey(QMainWindow):
     # zamienia bity na bajty, ktore zapisuje w pliku filename
     def bits_to_file(self, bits, filename):
         bitlist = []
-        for iterator in range(self.bytes_number):
+        for iterator in range(int(len(bits)/8) - 1):
             bitlist.append(bits[iterator * 8:iterator * 8 + 8])
 
         with open(filename, "wb") as f:
