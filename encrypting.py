@@ -63,7 +63,7 @@ class SecretKey(QMainWindow):
         return ''.join([chr(int(x, 2)) for x in b])
 
     def xor(self, x1, x2):
-        self.ui.progress_info.setText("wyliczam xor")
+        self.ui.progress_info.setText("Performing XOR")
         self.ui.progressBar.setValue(0)
         tmp = ""
         for n in range(len(x2)):
@@ -126,7 +126,7 @@ class SecretKey(QMainWindow):
         x = len(self.cellular.rules_list)/100
         y = 1
 
-        self.ui.progress_info.setText("Zapisuję użyte reguły do pliku")
+        self.ui.progress_info.setText("Saving used rules to file")
         file = open('cellular_automata_info.txt', 'w')
         file.write("Entropy value: ")
         file.write("%s " % self.entropy)
@@ -144,25 +144,33 @@ class SecretKey(QMainWindow):
         file.write("\nSeed: " + self.ui.seed_amount_box.text() + "\n")
         file.write("\nIterations:\n")
 
-        self.ui.progress_info.setText("Zapisuję generacje do pliku")
+        self.ui.progress_info.setText("Saving iterations to file")
         y=0
-        x = len(self.cellular.generations_list) / 100
+        x = len(self.cellular.generations_list)
+        if x > 500000:
+            x = 500000
         for n in self.cellular.generations_list:
-            for item in n:
-                file.write("%s" % item)
             self.ui.progressBar.setValue(int(round(y / x, 2) * 100))
             QApplication.processEvents()
             y += 1
+            if y >= x:
+                break
+            for item in n:
+                file.write("%s" % item)
             file.write("\n")
         file.write("\n")
+        file.close()
 
         key_file = open('key.txt','w')
-        self.ui.progress_info.setText("Zapisuję klucz do pliku")
+        self.ui.progress_info.setText("Saving key to file")
         key_file.write(self.generated_password)
+        key_file.close()
         encrypted_message_file = open('encrypted_message.txt','w')
-        self.ui.progress_info.setText("Zapisuję zaszyfrowaną wiadomość do pliku")
+        self.ui.progress_info.setText("Saving encrypted message to file")
         encrypted_message_file.write(self.encrypted_message)
-        self.ui.progress_info.setText("Gotowe")
+        encrypted_message_file.close()
+        self.ui.progressBar.setValue(100)
+        self.ui.progress_info.setText("Ready")
 
     @pyqtSlot()
     def decrypt_clicked(self):
@@ -177,7 +185,7 @@ class SecretKey(QMainWindow):
         if text == "":
             text = "file"
         self.bits_to_file(tmp, text)
-        self.ui.progress_info.setText("Gotowe")
+        self.ui.progress_info.setText("Ready")
 
     def return_column(self, index):
         tmp = ""
@@ -186,14 +194,12 @@ class SecretKey(QMainWindow):
         return tmp
 
     def iterate_iterate(self, iterations_counter):
-        self.ui.progress_info.setText("iteruję automaty komórkowe")
+        self.ui.progress_info.setText("Iterating cellular automaton")
+        self.ui.currently_iterate_box.setText(str(iterations_counter))
         for i in range(iterations_counter):
             self.cellular.iterate()
             self.ui.progressBar.setValue(int(round(i/iterations_counter,2)*100))
             QApplication.processEvents()
-            #self.ui.currently_iterate_box.setText('Iteration ' + str(i + 1) + ' out of ' + str(iterations_counter))
-
-
 
     def return_pseudorandom_number_sequence(self, index):
         lista_pomocnicza = self.return_column(index)
@@ -249,7 +255,7 @@ class SecretKey(QMainWindow):
         return czesci
 
     def entropia(self, sekwencja):
-        self.ui.progress_info.setText("liczę entropię")
+        self.ui.progress_info.setText("Counting entropy value")
         self.ui.progressBar.setValue(0)
         entropia_value = 0
         lista_czesci_dzielonych_na_h = self.string_na_czesci(sekwencja, int(self.ui.h_box.currentText()),
