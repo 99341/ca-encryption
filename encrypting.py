@@ -123,6 +123,9 @@ class SecretKey(QMainWindow):
             self.save()
 
     def save(self):
+        x = len(self.cellular.rules_list)/100
+        y = 1
+
         self.ui.progress_info.setText("Zapisuję użyte reguły do pliku")
         file = open('cellular_automata_info.txt', 'w')
         file.write("Entropy value: ")
@@ -134,21 +137,30 @@ class SecretKey(QMainWindow):
         if type(self.cellular.rules_list) is list:
             for m in self.cellular.rules_list:
                 file.write("%s " % m)
+                self.ui.progressBar.setValue(int(round(y/x, 2) * 100))
                 QApplication.processEvents()
+                y+=1
             file.write("\n")
         file.write("\nSeed: " + self.ui.seed_amount_box.text() + "\n")
         file.write("\nIterations:\n")
 
+        self.ui.progress_info.setText("Zapisuję generacje do pliku")
+        y=0
+        x = len(self.cellular.generations_list) / 100
         for n in self.cellular.generations_list:
             for item in n:
                 file.write("%s" % item)
-                QApplication.processEvents()
+            self.ui.progressBar.setValue(int(round(y / x, 2) * 100))
+            QApplication.processEvents()
+            y += 1
             file.write("\n")
         file.write("\n")
 
         key_file = open('key.txt','w')
+        self.ui.progress_info.setText("Zapisuję klucz do pliku")
         key_file.write(self.generated_password)
         encrypted_message_file = open('encrypted_message.txt','w')
+        self.ui.progress_info.setText("Zapisuję zaszyfrowaną wiadomość do pliku")
         encrypted_message_file.write(self.encrypted_message)
         self.ui.progress_info.setText("Gotowe")
 
@@ -264,9 +276,10 @@ class SecretKey(QMainWindow):
     def load_image_clicked(self):
         home = str(Path.home())
         self.fname, _fliter = QFileDialog.getOpenFileName(self, 'Open File', home)
-        self.ui.image_info.setText("File loaded")
-        loaded_color = QColor(0, 255, 0)
-        self.ui.frame.setStyleSheet("QWidget { background-color: %s }" % loaded_color.name())
+        if self.fname is not "":
+            self.ui.image_info.setText("File loaded")
+            loaded_color = QColor(0, 255, 0)
+            self.ui.frame.setStyleSheet("QWidget { background-color: %s }" % loaded_color.name())
 
     # zwraca string z bitami z pliku i liczbę bajtow z pliku
     def file_to_bits(self, filename):
